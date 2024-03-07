@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,29 +9,31 @@ import {
   StyleSheet,
   Alert,
   Modal,
-} from 'react-native';
+  ScrollView,
+} from "react-native";
 
 const TournamentDetails = ({ route }) => {
   const { tournamentName } = route.params;
   const [teams, setTeams] = useState([]);
-  const [teamName, setTeamName] = useState('');
+  const [teamName, setTeamName] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+  const [roundRobinMatchups, setRoundRobinMatchups] = useState([]);
 
-  const addTeam = () => {
-    if (teamName.trim() !== '') {
-      setTeams([...teams, teamName]);
-      setTeamName('');
-      setIsModalVisible(false);
-    } else {
-      Alert.alert('Error', 'Team name cannot be empty');
-    }
+  const handlePress = () => {
+    setIsPressed(true);
+    setRoundRobinMatchups(generateRoundRobinMatchups(teams));
   };
 
-  const renderTeamItem = ({ item }) => (
-    <View style={styles.teamItem}>
-      <Text style={styles.teamItemText}>{item}</Text>
-    </View>
-  );
+  const addTeam = () => {
+    if (teamName.trim() !== "") {
+      setTeams([...teams, teamName]);
+      setTeamName("");
+      setIsModalVisible(false);
+    } else {
+      Alert.alert("Error", "Team name cannot be empty");
+    }
+  };
 
   const calculateTeamStats = (team) => {
     const goals = 0;
@@ -50,12 +52,27 @@ const TournamentDetails = ({ route }) => {
       <View style={styles.tableRow}>
         <Text style={styles.tableText}>{item}</Text>
         <Text style={styles.tableText}>{teamStats.goals}</Text>
-        <Text style={styles.tableText}>{`${teamStats.wins}-${teamStats.draws}-${teamStats.losses}`}</Text>
+        <Text
+          style={styles.tableText}
+        >{`${teamStats.wins}-${teamStats.draws}-${teamStats.losses}`}</Text>
         <Text style={styles.tableText}>{teamStats.goalDifference}</Text>
         <Text style={styles.tableText}>{teamStats.points}</Text>
       </View>
     );
   };
+
+  //DOESNT REALLY WORK THAT WELL AT ALL. NEED BETTER ONE
+  function generateRoundRobinMatchups(teams) {
+    const matchups = [];
+  
+    for (let i = 0; i < teams.length - 1; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        matchups.push({ team1: teams[i], team2: teams[j] });
+      }
+    }
+  
+    return matchups;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -78,9 +95,62 @@ const TournamentDetails = ({ route }) => {
           renderItem={renderTableItem}
         />
 
-        <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ Add Team</Text>
-        </TouchableOpacity>
+        <ScrollView>
+          <TouchableOpacity
+            style={[styles.addButton, isPressed ? styles.disabledButton : null]}
+            onPress={() => setIsModalVisible(true)}
+            disabled={isPressed === true}
+          >
+            <Text style={styles.addButtonText}>+ Add Team</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.addButton,
+              teams.length < 2 ? styles.disabledButton : null,
+            ]}
+            disabled={teams.length < 2}
+            onPress={handlePress}
+          >
+            <Text style={styles.addButtonText}>Create Matchups</Text>
+          </TouchableOpacity>
+
+          <View style={styles.line} />
+
+          {isPressed &&
+            roundRobinMatchups.flat().map(({ team1, team2 }, index) => {
+              const key = `${team1}-${team2}-Match${index}`;
+              return (
+                <View key={key} style={styles.matchupItem}>
+                  <Text style={styles.matchupText}>
+                    {team1} vs {team2}
+                  </Text>
+                  <View style={styles.scoreContainer}>
+                    <TextInput
+                      style={styles.scoreInput}
+                      keyboardType="numeric"
+                      onChangeText={(text) =>
+                        handleScoreChange(text, key, "score1")
+                      }
+                    />
+                    <TextInput
+                      style={styles.scoreInput}
+                      keyboardType="numeric"
+                      onChangeText={(text) =>
+                        handleScoreChange(text, key, "score2")
+                      }
+                    />
+                  </View>
+                  <TouchableOpacity
+                    style={styles.updateButton}
+                    // onPress={() => handleUpdateScore(key)}
+                  >
+                    <Text style={styles.updateButtonText}>Update</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+        </ScrollView>
 
         <Modal visible={isModalVisible} transparent animationType="slide">
           <View style={styles.modalContainer}>
@@ -105,104 +175,150 @@ const TournamentDetails = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ecf0f1',
+    backgroundColor: "#ecf0f1",
   },
   header: {
-    backgroundColor: '#3498db',
+    backgroundColor: "#3498db",
     padding: 15,
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerText: {
-    color: 'white',
+    color: "white",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   content: {
     padding: 15,
   },
   tableHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: '#3498db',
+    borderBottomColor: "#3498db",
     paddingBottom: 10,
     marginBottom: 10,
   },
   tableHeaderText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     flex: 1,
-    textAlign: 'center',
-    color: '#3498db',
+    textAlign: "center",
+    color: "#3498db",
   },
   tableRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
-    backgroundColor: '#ecf0f1',
+    backgroundColor: "#ecf0f1",
     padding: 10,
     borderRadius: 5,
   },
   tableText: {
     flex: 1,
-    textAlign: 'center',
-    color: '#3498db',
+    textAlign: "center",
+    color: "#3498db",
   },
   addButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: "#3498db",
     padding: 15,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
   addButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
   teamItem: {
-    backgroundColor: '#3498db',
+    backgroundColor: "#3498db",
     padding: 10,
     marginBottom: 10,
     borderRadius: 5,
   },
   teamItemText: {
     fontSize: 16,
-    color: 'white',
+    color: "white",
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 20,
     borderRadius: 10,
-    width: '80%',
+    width: "80%",
   },
   modalHeader: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color: '#3498db',
+    color: "#3498db",
   },
   modalInput: {
     height: 40,
-    borderColor: '#3498db',
+    borderColor: "#3498db",
     borderWidth: 1,
     marginBottom: 10,
     padding: 10,
     borderRadius: 5,
   },
   modalButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: "#3498db",
     padding: 15,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  matchupItem: {
+    marginBottom: 10,
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+    borderColor: "#ccc",
+    borderWidth: 1,
+  },
+  matchupText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+    textAlign: "center",
+  },
+  scoreContainer: {
+    flexDirection: "row",
+    marginBottom: 5,
+  },
+  scoreInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginRight: 10,
+  },
+  updateButton: {
+    backgroundColor: "#3498db",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  updateButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  line: {
+    marginTop: 20,
+    marginBottom: 10,
+    height: 1,
+    backgroundColor: "#ccc",
   },
 });
 
