@@ -19,6 +19,7 @@ const TournamentDetails = ({ route }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const [roundRobinMatchups, setRoundRobinMatchups] = useState([]);
+  const [dataArray, setDataArray] = useState([]);
 
   const handlePress = () => {
     setIsPressed(true);
@@ -30,9 +31,24 @@ const TournamentDetails = ({ route }) => {
       setTeams([...teams, teamName]);
       setTeamName("");
       setIsModalVisible(false);
+      setInitialValues(teamName);
     } else {
       Alert.alert("Error", "Team name cannot be empty");
     }
+  };
+
+  const setInitialValues = ({teamName}) => {
+    const newDataObject = {
+      teamName: teamName,
+      goals: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      scoredifferential: 0,
+      totalPoints: 0,
+    };
+
+    setDataArray(prevDataArray => [...prevDataArray, newDataObject]);
   };
 
   const calculateTeamStats = (team) => {
@@ -46,8 +62,13 @@ const TournamentDetails = ({ route }) => {
     return { goals, wins, draws, losses, goalDifference, points };
   };
 
+  const handleUpdateScore = (key) => {
+    
+  }
+
   const renderTableItem = ({ item }) => {
     const teamStats = calculateTeamStats(item);
+
     return (
       <View style={styles.tableRow}>
         <Text style={styles.tableText}>{item}</Text>
@@ -119,7 +140,7 @@ const TournamentDetails = ({ route }) => {
 
           {isPressed &&
             roundRobinMatchups.flat().map(({ team1, team2 }, index) => {
-              const key = `${team1}-${team2}-Match${index}`;
+              const key = `${team1}-${team2}`;
               return (
                 <View key={key} style={styles.matchupItem}>
                   <Text style={styles.matchupText}>
@@ -143,7 +164,7 @@ const TournamentDetails = ({ route }) => {
                   </View>
                   <TouchableOpacity
                     style={styles.updateButton}
-                    // onPress={() => handleUpdateScore(key)}
+                    onPress={() => handleUpdateScore(key)}
                   >
                     <Text style={styles.updateButtonText}>Update</Text>
                   </TouchableOpacity>

@@ -13,66 +13,29 @@ import {
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import TournamentDetails from './TournamentDetails';
+import CreateScreen from './CreateScreen';
+import Svg, { Circle, Rect } from 'react-native-svg';
 
 const HomeScreen = ({ navigation }) => {
-  const [tournaments, setTournaments] = useState([]);
-  const [newTournament, setNewTournament] = useState('');
-
-  const createTournament = () => {
-    if (newTournament.trim() !== '') {
-      setTournaments([...tournaments, newTournament]);
-      setNewTournament('');
-      Keyboard.dismiss();
-    }
+  const navigateToNewPage = () => {
+    navigation.navigate('Create');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Tourney Maker</Text>
-      </View>
-
-      <View style={styles.content}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter tournament name"
-          onChangeText={(text) => setNewTournament(text)}
-        />
-        <TouchableOpacity style={styles.button} onPress={createTournament}>
-          <Text style={styles.buttonText}>+ New Tournament</Text>
-        </TouchableOpacity>
-
-        <View style={styles.tournamentsList}>
-          <Text style={styles.tournamentsListHeader}>Tournaments:</Text>
-          <FlatList
-            data={tournaments}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.tournamentItem}
-                onPress={() => navigation.navigate('Tournament', { tournamentName: item })}
-              >
-                <Text style={styles.tournamentItemText}>{item}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      </View>
-    </SafeAreaView>
-  );
-};
-
-const TournamentScreen = ({ route }) => {
-  const { tournamentName } = route.params;
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>{tournamentName}</Text>
-      </View>
-
-      {/* Implement the rest of the tournament creation UI here */}
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Svg height="100%" width="100%" style={styles.svg}>
+        <Circle cx="100" cy="50" r="50" fill="#FFC0CB" />
+        <Circle cx="250" cy="150" r="100" fill="#87CEEB" />
+        <Circle cx="350" cy="300" r="80" fill="#FFA07A" />
+        <Circle cx="150" cy="500" r="80" fill="#98FB98" />
+        <Circle cx="0" cy="325" r="100" fill="#ADD8E6" />
+        <Circle cx="300" cy="700" r="90" fill="#FFB6C1" />
+      </Svg>
+      <Text style={styles.title}>Tourny Maker</Text>
+      <TouchableOpacity style={styles.button} onPress={navigateToNewPage}>
+        <Text style={styles.buttonText}>Start</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -84,6 +47,7 @@ const App = () => {
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Tournament" component={TournamentDetails} />
+        <Stack.Screen name="Create" component={CreateScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -93,56 +57,29 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-  },
-  header: {
-    backgroundColor: '#3498db',
-    padding: 15,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f0f0f0', // Change background color as desired
   },
-  headerText: {
-    color: 'white',
+  svg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: -1,
+  },
+  title: {
     fontSize: 24,
-    fontWeight: 'bold',
-  },
-  content: {
-    padding: 15,
-  },
-  input: {
-    height: 40,
-    borderColor: '#3498db',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingLeft: 10,
-    borderRadius: 5,
-    backgroundColor: 'white',
+    marginBottom: 20,
   },
   button: {
-    backgroundColor: '#3498db',
-    padding: 10,
+    padding: 15,
+    paddingHorizontal: 30,
+    backgroundColor: '#007bff', // Change button color as desired
     borderRadius: 5,
-    alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  tournamentsList: {
-    marginTop: 20,
-  },
-  tournamentsListHeader: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  tournamentItem: {
-    padding: 10,
-    backgroundColor: 'white',
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  tournamentItemText: {
-    fontSize: 16,
+    color: 'white',
   },
 });
 
