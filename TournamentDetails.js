@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  FlatList,
   SafeAreaView,
   StyleSheet,
   Alert,
@@ -20,6 +19,9 @@ const TournamentDetails = ({ route }) => {
   const [isPressed, setIsPressed] = useState(false);
   const [roundRobinMatchups, setRoundRobinMatchups] = useState([]);
   const [dataArray, setDataArray] = useState([]);
+  const [score1, changeScore1] = useState(0);
+  const [score2, changeScore2] = useState(0);
+  const [hasUpdatePressed, setUpdatePressed] = useState([0]);
 
   const handlePress = () => {
     setIsPressed(true);
@@ -28,70 +30,76 @@ const TournamentDetails = ({ route }) => {
 
   const addTeam = () => {
     if (teamName.trim() !== "") {
+      const newTeam = {
+        teamName: teamName,
+        goals: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        scoredifferential: 0,
+        totalPoints: 0,
+      };
       setTeams([...teams, teamName]);
       setTeamName("");
       setIsModalVisible(false);
-      setInitialValues(teamName);
+      setDataArray([...dataArray, newTeam]);
     } else {
       Alert.alert("Error", "Team name cannot be empty");
     }
   };
 
-  const setInitialValues = ({teamName}) => {
-    const newDataObject = {
-      teamName: teamName,
-      goals: 0,
-      wins: 0,
-      draws: 0,
-      losses: 0,
-      scoredifferential: 0,
-      totalPoints: 0,
-    };
-
-    setDataArray(prevDataArray => [...prevDataArray, newDataObject]);
+  const handleUpdateScore = (key, index) => {
+    const updatedDataArray = dataArray.map((item) => {
+      if (item.teamName === key.team1) {
+        return {
+          ...item,
+          goals: item.goals + parseInt(score1),
+          wins: parseInt(score1) > parseInt(score2) ? item.wins + 1 : item.wins,
+          draws:
+            parseInt(score1) === parseInt(score2) ? item.draws + 1 : item.draws,
+          losses:
+            parseInt(score1) < parseInt(score2) ? item.losses + 1 : item.losses,
+          scoredifferential: score1 - score2 + item.scoredifferential,
+          totalPoints:
+            parseInt(score1) > parseInt(score2)
+              ? item.totalPoints + 2
+              : item.totalPoints + 1,
+        };
+      } else if (item.teamName === key.team2) {
+        return {
+          ...item,
+          goals: item.goals + parseInt(score2),
+          wins: parseInt(score2) > parseInt(score1) ? item.wins + 1 : item.wins,
+          draws:
+            parseInt(score2) === parseInt(score1) ? item.draws + 1 : item.draws,
+          losses:
+            parseInt(score2) < parseInt(score1) ? item.losses + 1 : item.losses,
+          scoredifferential: score2 - score1 + item.scoredifferential,
+          totalPoints:
+            parseInt(score1) < parseInt(score2)
+              ? item.totalPoints + 2
+              : item.totalPoints + 1,
+        };
+      }
+      return item;
+    });
+    setDataArray(updatedDataArray);
+    const newArray = [...hasUpdatePressed];
+    newArray[index] = 1;
+    setUpdatePressed(newArray);
   };
 
-  const calculateTeamStats = (team) => {
-    const goals = 0;
-    const wins = 0;
-    const draws = 0;
-    const losses = 0;
-    const goalDifference = goals - (wins * 3 + draws);
-    const points = wins * 3 + draws;
-
-    return { goals, wins, draws, losses, goalDifference, points };
-  };
-
-  const handleUpdateScore = (key) => {
-    
-  }
-
-  const renderTableItem = ({ item }) => {
-    const teamStats = calculateTeamStats(item);
-
-    return (
-      <View style={styles.tableRow}>
-        <Text style={styles.tableText}>{item}</Text>
-        <Text style={styles.tableText}>{teamStats.goals}</Text>
-        <Text
-          style={styles.tableText}
-        >{`${teamStats.wins}-${teamStats.draws}-${teamStats.losses}`}</Text>
-        <Text style={styles.tableText}>{teamStats.goalDifference}</Text>
-        <Text style={styles.tableText}>{teamStats.points}</Text>
-      </View>
-    );
-  };
-
-  //DOESNT REALLY WORK THAT WELL AT ALL. NEED BETTER ONE
   function generateRoundRobinMatchups(teams) {
     const matchups = [];
-  
+    var counter = 0;
+
     for (let i = 0; i < teams.length - 1; i++) {
       for (let j = i + 1; j < teams.length; j++) {
-        matchups.push({ team1: teams[i], team2: teams[j] });
+        matchups.push({ team1: teams[i], team2: teams[j], id: counter });
+        counter++;
       }
     }
-  
+
     return matchups;
   }
 
@@ -110,11 +118,19 @@ const TournamentDetails = ({ route }) => {
           <Text style={styles.tableHeaderText}>Points</Text>
         </View>
 
-        <FlatList
-          data={teams}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={renderTableItem}
-        />
+        {dataArray.map((item) => {
+          return (
+            <View style={styles.tableRow} key={item.teamName}>
+              <Text style={styles.tableText}>{item.teamName}</Text>
+              <Text style={styles.tableText}>{item.goals}</Text>
+              <Text
+                style={styles.tableText}
+              >{`${item.wins}-${item.draws}-${item.losses}`}</Text>
+              <Text style={styles.tableText}>{item.scoredifferential}</Text>
+              <Text style={styles.tableText}>{item.totalPoints}</Text>
+            </View>
+          );
+        })}
 
         <ScrollView>
           <TouchableOpacity
@@ -128,9 +144,11 @@ const TournamentDetails = ({ route }) => {
           <TouchableOpacity
             style={[
               styles.addButton,
-              teams.length < 2 ? styles.disabledButton : null,
+              teams.length < 2 || roundRobinMatchups.length > 0
+                ? styles.disabledButton
+                : null,
             ]}
-            disabled={teams.length < 2}
+            disabled={teams.length < 2 || roundRobinMatchups.length > 0}
             onPress={handlePress}
           >
             <Text style={styles.addButtonText}>Create Matchups</Text>
@@ -138,39 +156,37 @@ const TournamentDetails = ({ route }) => {
 
           <View style={styles.line} />
 
-          {isPressed &&
-            roundRobinMatchups.flat().map(({ team1, team2 }, index) => {
-              const key = `${team1}-${team2}`;
-              return (
-                <View key={key} style={styles.matchupItem}>
-                  <Text style={styles.matchupText}>
-                    {team1} vs {team2}
-                  </Text>
-                  <View style={styles.scoreContainer}>
-                    <TextInput
-                      style={styles.scoreInput}
-                      keyboardType="numeric"
-                      onChangeText={(text) =>
-                        handleScoreChange(text, key, "score1")
-                      }
-                    />
-                    <TextInput
-                      style={styles.scoreInput}
-                      keyboardType="numeric"
-                      onChangeText={(text) =>
-                        handleScoreChange(text, key, "score2")
-                      }
-                    />
-                  </View>
-                  <TouchableOpacity
-                    style={styles.updateButton}
-                    onPress={() => handleUpdateScore(key)}
-                  >
-                    <Text style={styles.updateButtonText}>Update</Text>
-                  </TouchableOpacity>
+          {roundRobinMatchups?.map(({ id, team1, team2 }) => {
+            return (
+              <View key={id} style={styles.matchupItem}>
+                <Text style={styles.matchupText}>
+                  {team1} vs {team2}
+                </Text>
+                <View style={styles.scoreContainer}>
+                  <TextInput
+                    style={styles.scoreInput}
+                    keyboardType="numeric"
+                    onChangeText={(text) => changeScore1(text)}
+                  />
+                  <TextInput
+                    style={styles.scoreInput}
+                    keyboardType="numeric"
+                    onChangeText={(text) => changeScore2(text)}
+                  />
                 </View>
-              );
-            })}
+                <TouchableOpacity
+                  style={[
+                    styles.updateButton,
+                    hasUpdatePressed[id] === 1 ? styles.disabledButton : null,
+                  ]}
+                  onPress={() => handleUpdateScore(key, id)}
+                  disabled={hasUpdatePressed[id] === 1}
+                >
+                  <Text style={styles.updateButtonText}>Update</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </ScrollView>
 
         <Modal visible={isModalVisible} transparent animationType="slide">
@@ -188,6 +204,12 @@ const TournamentDetails = ({ route }) => {
             </View>
           </View>
         </Modal>
+
+        {/*<View>
+          {hasUpdatePressed.length === roundRobinMatchups.length && (
+            <Text>All values in temp are 1</Text>
+          )}
+        </View> */}
       </View>
     </SafeAreaView>
   );
@@ -249,16 +271,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: "white",
     fontWeight: "bold",
-  },
-  teamItem: {
-    backgroundColor: "#3498db",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  teamItemText: {
-    fontSize: 16,
-    color: "white",
   },
   modalContainer: {
     flex: 1,
