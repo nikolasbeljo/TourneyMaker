@@ -71,7 +71,7 @@ function CreateScreen({ navigation }) {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerText}>Tournament Creator</Text>
+                <Text style={styles.headerText}>Tourney Creator</Text>
             </View>
 
             <View style={styles.content}>

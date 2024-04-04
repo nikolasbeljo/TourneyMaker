@@ -44,15 +44,17 @@ const Knockout = ({ route }) => {
       const score2 = parseInt(scores[index * 2 + 1]) || 0;
       return score1 > score2 ? match[0] : match[1];
     });
-
+  
     // Update round winners
     setRoundWinners(currentRoundWinners);
-
+  
+    // Clear the scores for the next round
+    setScores(new Array(fixtures.length * 2).fill(''));
+  
     // Proceed to the next round if there are more than 1 winner
     if (currentRoundWinners.length > 1) {
       setRound(round + 1);
       setFixtures([]);
-      setScores([]);
       generateNextRound(currentRoundWinners);
     } else {
       // Tournament finished, determine the winner
@@ -99,6 +101,8 @@ const Knockout = ({ route }) => {
   };
 
   const renderFixtures = () => {
+    const tournamentFinished = roundWinners.length === 1;
+  
     return (
       <View>
         <Text style={styles.sectionTitle}>Round {round} Fixtures</Text>
@@ -111,19 +115,31 @@ const Knockout = ({ route }) => {
                 keyboardType="numeric"
                 placeholder="Score 1"
                 onChangeText={(text) => handleScoreChange(index * 2, text)}
+                editable={!tournamentFinished}
+                value={scores[index * 2]}
               />
               <TextInput
                 style={[styles.scoreInput, { backgroundColor: 'white' }]}
                 keyboardType="numeric"
                 placeholder="Score 2"
                 onChangeText={(text) => handleScoreChange(index * 2 + 1, text)}
+                editable={!tournamentFinished}
+                value={scores[index * 2 + 1]}
               />
             </View>
           </View>
         ))}
-        <TouchableOpacity style={styles.finishRoundButton} onPress={handleRoundFinish}>
-          <Text style={styles.finishRoundButtonText}>Finish Round</Text>
-        </TouchableOpacity>
+        {!tournamentFinished && (
+          <TouchableOpacity style={styles.finishRoundButton} onPress={handleRoundFinish}>
+            <Text style={styles.finishRoundButtonText}>Finish Round</Text>
+          </TouchableOpacity>
+        )}
+        {tournamentFinished && (
+            <View style={styles.winnerContainer}>
+                <MaterialIcons name="emoji-events" size={64} color="gold" style={styles.winnerIcon} />
+                <Text style={styles.winnerText}>Winner: {roundWinners[0]}</Text>
+            </View>        
+        )}
       </View>
     );
   };
@@ -169,95 +185,111 @@ const Knockout = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  detailContainer: {
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  detailLabel: {
-    fontWeight: 'bold',
-    marginRight: 5,
-  },
-  detailText: {
-    flex: 1,
-    fontSize: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  participantContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  participantNumber: {
-    marginRight: 10,
-    fontSize: 16,
-  },
-  participantText: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginLeft: 10,
-  },
-  matchContainer: {
-    marginBottom: 10,
-  },
-  matchText: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  scoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  scoreInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
-  },
-  startButton: {
-    backgroundColor: '#3498db',
-    paddingVertical: 15,
-    borderRadius: 5,
-    marginTop: 20,
-  },
-  startButtonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  finishRoundButton: {
-    backgroundColor: '#3498db',
-    paddingVertical: 15,
-    borderRadius: 5,
-    marginTop: 20,
-  },
-  finishRoundButtonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
+    container: {
+      flexGrow: 1,
+      padding: 20,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      textAlign: 'center',
+    },
+    detailContainer: {
+      flexDirection: 'row',
+      marginBottom: 10,
+    },
+    detailLabel: {
+      fontWeight: 'bold',
+      marginRight: 5,
+    },
+    detailText: {
+      flex: 1,
+      fontSize: 16,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginTop: 20,
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    participantContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    participantNumber: {
+      marginRight: 10,
+      fontSize: 16,
+    },
+    participantText: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 5,
+      padding: 10,
+      marginLeft: 10,
+    },
+    matchContainer: {
+      marginBottom: 10,
+    },
+    matchText: {
+      fontSize: 16,
+      marginBottom: 5,
+      textAlign: 'center', // Centered text
+      fontWeight: 'bold', // Bold font
+    },
+    scoreContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    scoreInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 5,
+      padding: 10,
+      marginRight: 10,
+    },
+    startButton: {
+      backgroundColor: '#3498db',
+      paddingVertical: 15,
+      borderRadius: 5,
+      marginTop: 20,
+    },
+    startButtonText: {
+      color: 'white',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: 16,
+    },
+    finishRoundButton: {
+      backgroundColor: '#3498db',
+      paddingVertical: 15,
+      borderRadius: 5,
+      marginTop: 20,
+    },
+    finishRoundButtonText: {
+      color: 'white',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: 16,
+    },
+    winnerContainer: {
+      alignItems: 'center',
+      marginTop: 40,
+    },
+    winnerIcon: {
+      marginBottom: 20,
+    },
+    winnerText: {
+      fontSize: 36,
+      fontWeight: 'bold',
+      color: 'gold',
+      textAlign: 'center',
+    },
+  });
+  
 
 export default Knockout;
