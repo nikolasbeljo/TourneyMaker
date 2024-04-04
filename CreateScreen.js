@@ -34,7 +34,9 @@ function CreateScreen({ navigation }) {
                   onPress={() => navigation.navigate(navigateToScreen, { 
                       tournamentName: item.name,
                       numberOfPlayers: item.participants,
-                      tournamentType: item.format
+                      tournamentType: item.format,
+                      tournamentSport: item.sport,
+                      tournamentDate: item.date.toLocaleDateString()
                   })}
               >
                   <Text style={styles.tournamentItemText}>{item.name}</Text>
