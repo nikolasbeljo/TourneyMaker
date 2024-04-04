@@ -31,7 +31,7 @@ const HomeScreen = ({ navigation }) => {
         <Circle cx="0" cy="325" r="100" fill="#ADD8E6" />
         <Circle cx="300" cy="700" r="90" fill="#FFB6C1" />
       </Svg>
-      <Text style={styles.title}>Tourny Maker</Text>
+      <Text style={styles.title}>Tourney Maker</Text>
       <TouchableOpacity style={styles.button} onPress={navigateToNewPage}>
         <Text style={styles.buttonText}>Start</Text>
       </TouchableOpacity>
