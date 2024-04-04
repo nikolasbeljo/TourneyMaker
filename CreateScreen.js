@@ -25,22 +25,29 @@ function CreateScreen({ navigation }) {
     };
 
     const renderTournamentItem = ({ item, index }) => {
-        return (
-            <View style={styles.tournamentItem}>
-                <TouchableOpacity
-                    style={styles.tournamentItemContent}
-                    onPress={() => navigation.navigate('Tournament', { tournamentName: item.name })}
-                >
-                    <Text style={styles.tournamentItemText}>{item.name}</Text>
-                    <Text style={styles.tournamentItemText}>{item.date.toLocaleDateString()}</Text>
-                    <MaterialIcons name={getSportIcon(item.sport)} size={24} color="#3498db" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteButton} onPress={() => deleteTournament(index)}>
-                    <MaterialIcons name="delete" size={24} color="white" />
-                </TouchableOpacity>
-            </View>
-        );
-    };
+      const navigateToScreen = item.format === 'Knockout' ? 'Knockout' : item.format === 'Round Robin' ? 'Tournament' : 'Tournament';
+      
+      return (
+          <View style={styles.tournamentItem}>
+              <TouchableOpacity
+                  style={styles.tournamentItemContent}
+                  onPress={() => navigation.navigate(navigateToScreen, { 
+                      tournamentName: item.name,
+                      numberOfPlayers: item.participants,
+                      tournamentType: item.format
+                  })}
+              >
+                  <Text style={styles.tournamentItemText}>{item.name}</Text>
+                  <Text style={styles.tournamentItemText}>{item.date.toLocaleDateString()}</Text>
+                  <Text style={styles.tournamentItemText}>{item.format}</Text>
+                  <MaterialIcons name={getSportIcon(item.sport)} size={24} color="#3498db" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteButton} onPress={() => deleteTournament(index)}>
+                  <MaterialIcons name="delete" size={24} color="white" />
+              </TouchableOpacity>
+          </View>
+      );
+    }; 
 
     const getSportIcon = (sport) => {
         switch (sport) {

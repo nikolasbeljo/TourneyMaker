@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SelectDropdown from 'react-native-select-dropdown';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CreateTournamentModal = ({ visible, onSave, onClose }) => {
     const [tournamentDetails, setTournamentDetails] = useState({
@@ -42,8 +43,15 @@ const CreateTournamentModal = ({ visible, onSave, onClose }) => {
         { title: 'Round Robin' },
     ];
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        try {
+            await AsyncStorage.setItem('tournamentDetails', JSON.stringify(tournamentDetails));
+            console.log('Tournament details saved:', tournamentDetails);
+        } catch (error) {
+            console.error('Error saving tournament details:', error);
+        }
         onSave(tournamentDetails);
+
         setTournamentDetails({
             name: '',
             sport: '',

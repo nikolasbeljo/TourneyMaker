@@ -14,6 +14,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import TournamentDetails from './TournamentDetails';
 import CreateScreen from './CreateScreen';
+import Knockout from './Knockout';
 import Svg, { Circle, Rect } from 'react-native-svg';
 
 const HomeScreen = ({ navigation }) => {
@@ -48,6 +49,7 @@ const App = () => {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Tournament" component={TournamentDetails} />
         <Stack.Screen name="Create" component={CreateScreen} />
+        <Stack.Screen name="Knockout" component={Knockout} />
       </Stack.Navigator>
     </NavigationContainer>
   );
