@@ -48,9 +48,9 @@ const TournamentDetails = ({ route }) => {
     }
   };
 
-  const handleUpdateScore = (key, index) => {
+  const handleUpdateScore = (team1, team2, index) => {
     const updatedDataArray = dataArray.map((item) => {
-      if (item.teamName === key.team1) {
+      if (item.teamName === team1) {
         return {
           ...item,
           goals: item.goals + parseInt(score1),
@@ -65,7 +65,7 @@ const TournamentDetails = ({ route }) => {
               ? item.totalPoints + 2
               : item.totalPoints + 1,
         };
-      } else if (item.teamName === key.team2) {
+      } else if (item.teamName === team2) {
         return {
           ...item,
           goals: item.goals + parseInt(score2),
@@ -179,7 +179,7 @@ const TournamentDetails = ({ route }) => {
                     styles.updateButton,
                     hasUpdatePressed[id] === 1 ? styles.disabledButton : null,
                   ]}
-                  onPress={() => handleUpdateScore(key, id)}
+                  onPress={() => handleUpdateScore(team1, team2, id)}
                   disabled={hasUpdatePressed[id] === 1}
                 >
                   <Text style={styles.updateButtonText}>Update</Text>
